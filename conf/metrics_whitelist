@@ -1,0 +1,14 @@
+# jmv metrics
+java.lang.GarbageCollector.G1YoungGeneration.collectioncount
+java.lang.GarbageCollector.G1YoungGeneration.collectiontime
+java.lang.GarbageCollector.G1OldGeneration.collectioncount
+java.lang.GarbageCollector.G1OldGeneration.collectiontime
+java.lang.Memory.heapmemoryusagecommitted
+java.lang.Memory.heapmemoryusagemax
+java.lang.Memory.heapmemoryusageused
+java.lang.Memory.nonheapmemoryusagecommitted
+java.lang.Memory.nonheapmemoryusagemax
+java.lang.Memory.nonheapmemoryusageused
+java.lang.OperatingSystem.availableprocessors
+java.lang.OperatingSystem.processcpuload
+java.lang.OperatingSystem.systemcpuload
