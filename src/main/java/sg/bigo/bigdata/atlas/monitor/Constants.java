@@ -1,9 +1,13 @@
 package sg.bigo.bigdata.atlas.monitor;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 public class Constants {
 
-    public final static String AMBARI_COLLECTOR_PROTOCOL = "http";
+    public final static String HTTP_PROTOCOL = "http";
     public final static String AMBARI_COLLECTOR_RESTAPI = "/ws/v1/timeline/metrics";
+    public final static String ATLAS_METRICS_RESTAPI = "/api/atlas/admin/metrics";
     /**
      * ambari metric protocol, specify component
      */
@@ -42,15 +46,10 @@ public class Constants {
     public final static String LOCAL_HOST = "0.0.0.0";
 
     /**
-     * Presto Api
+     * atlas Api
      */
-    public final static String IS_COORDINATOR = "isCoordinator";
-    public final static String PRESTO_API_PROTOCOL = "http";
-    public final static String PRESTO_API_PORT = "prestoApiPort";
-    public final static String PRESTO_API_INFO = "/v1/info";
-    public final static String PRESTO_API_CLUSTER = "/v1/cluster";
-    public final static String PRESTO_API_QUERY = "/v1/query";
-    public final static String PRESTO_API_WORKER_STATUS = "/v1/status";
-    public final static String PRESTO_TIMEOUT = "prestoTimeout";
+    public final static String ATLAS_API_PORT = "atlasApiPort";
+    public final static String ATLAS_TIMEOUT = "atlasTimeout";
+    public final static HashSet ATLAS_GENERAL_METRICS = new HashSet(Arrays.asList("entityCount", "tagCount", "typeUnusedCount", "typeCount"));
 
 }

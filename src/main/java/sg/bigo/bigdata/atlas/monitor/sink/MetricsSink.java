@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sg.bigo.bigdata.atlas.monitor.rest.Sender;
 import sg.bigo.bigdata.atlas.monitor.InfoArgs;
-import sg.bigo.bigdata.atlas.monitor.utils.Utils;
+import sg.bigo.bigdata.atlas.monitor.utils.JmxUtils;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -69,7 +69,7 @@ public class MetricsSink {
             return true;
         }
         String collectorHost = getCurrentCollectorHost();
-        String connectUrl = Utils.getAmbariCollectorUri(collectorHost, args.getAmbariCollectorHttpPort());
+        String connectUrl = JmxUtils.getAmbariCollectorUri(collectorHost, args.getAmbariCollectorHttpPort());
         String jsonData = null;
         LOG.info("EmitMetrics connectUrl = " + connectUrl + ", objName: " + args.getObjName());
         try {

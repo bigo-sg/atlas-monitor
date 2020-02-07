@@ -1,16 +1,21 @@
 package sg.bigo.bigdata.atlas.monitor.metrics;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.jmxtrans.model.Result;
 import com.googlecode.jmxtrans.util.ObjectToDouble;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata.*;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata.MetricType;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sg.bigo.bigdata.atlas.monitor.Constants;
-import sg.bigo.bigdata.atlas.monitor.sink.MetricsSink;
 import sg.bigo.bigdata.atlas.monitor.InfoArgs;
+import sg.bigo.bigdata.atlas.monitor.rest.AtlasApi;
+import sg.bigo.bigdata.atlas.monitor.sink.MetricsSink;
+import sg.bigo.bigdata.atlas.monitor.utils.AtlasUtils;
+import sg.bigo.bigdata.atlas.monitor.utils.JmxUtils;
 
 import java.util.*;
 
@@ -58,6 +63,33 @@ public class JmxHandler {
     }
 
     /**
+     * Handle API Results and send them to ambari collector
+     * @return
+     * @throws Exception
+     */
+    public boolean handleApiResult() throws Exception {
+        TimelineMetrics metrics = new TimelineMetrics();
+        ArrayList<TimelineMetric> timelineMetrics = new ArrayList<>();
+
+        // API metrics
+        if (args.isCoordinator()) {
+            List<TimelineMetric> apiMetrics = buildApiTimelineMetrics();
+            timelineMetrics.addAll(apiMetrics);
+            if (apiMetrics.size() == 0) {
+                LOG.warn("api metric size is 0");
+            }
+        }
+
+        metrics.setMetrics(timelineMetrics);
+        if (metrics.getMetrics().size() == 0) {
+            LOG.warn("all metric size is 0, return");
+            return true;
+        }
+
+        return emitMetrics(metrics);
+    }
+
+    /**
      * build the timeline metrics of ambari
      * @param results
      * @return
@@ -74,6 +106,120 @@ public class JmxHandler {
             }
         }
         return metrics;
+    }
+
+    /**
+     * Build atlas metric
+     * @return
+     */
+    public List<TimelineMetric> buildApiTimelineMetrics() {
+        List<TimelineMetric> metrics = new LinkedList();
+        AtlasApi prestoApi = new AtlasApi();
+        long currTimeMillis = new Date().getTime();
+
+        // get active atlas host
+        String activeAddress = AtlasUtils.getActiveAddress(args.getAmbariZkQuorum());
+
+        // request presto for metrics
+        JSONObject data = prestoApi.getMetrics(JmxUtils.getAtlasMetricsUri(activeAddress),
+                5000).getJSONObject("data");
+
+        JSONObject general = data.getJSONObject("general");
+        JSONObject tag = data.getJSONObject("tag");
+        JSONObject entity = data.getJSONObject("entity");
+        JSONObject system = data.getJSONObject("system");
+
+        // metric for general
+        Map<String, Object> generalMetricMap = general.getInnerMap();
+        for (String key : generalMetricMap.keySet()) {
+            if (Constants.ATLAS_GENERAL_METRICS.contains(key)) {
+                Object value = generalMetricMap.get(key);
+                String metricName = "atlas.metric." + "general." + key;
+                TimelineMetric currMetric = buildApiTimelineMetric(metricName, value, MetricType.GAUGE, currTimeMillis);
+                if (currMetric != null) {
+                    metrics.add(currMetric);
+                }
+            }
+        }
+
+        Map<String, Object> topics = general.getJSONObject("stats").getJSONObject("Notification:topicDetails")
+                .getInnerMap();
+        for (String topic : topics.keySet()) {
+            Map<String, Object> topicDetails = JSONObject.parseObject(topics.get(topic).toString()).getInnerMap();
+            for (String key : topicDetails.keySet()) {
+                Object value = topicDetails.get(key);
+                String metricName = "atlas.metric." + "general." + StringUtils.replace(topic, "-", "_")
+                        + "." + key;
+                TimelineMetric currMetric = buildApiTimelineMetric(metricName, value, MetricType.GAUGE, currTimeMillis);
+                if (currMetric != null) {
+                    metrics.add(currMetric);
+                }
+            }
+        }
+
+        // metric for tag
+        Map<String, Object> tagEntities = tag.getJSONObject("tagEntities").getInnerMap();
+        for (String key : tagEntities.keySet()) {
+            Object value = tagEntities.get(key);
+            String metricName = "atlas.metric." + "tag.tagEntities." + key;
+            TimelineMetric currMetric = buildApiTimelineMetric(metricName, value, MetricType.GAUGE, currTimeMillis);
+            if (currMetric != null) {
+                metrics.add(currMetric);
+            }
+        }
+
+        // metric for entity
+        Map<String, Object> entityActive = entity.getJSONObject("entityActive").getInnerMap();
+        for (String key : entityActive.keySet()) {
+            Object value = entityActive.get(key);
+            String metricName = "atlas.metric." + "entity.entityActive." + key;
+            TimelineMetric currMetric = buildApiTimelineMetric(metricName, value, MetricType.GAUGE, currTimeMillis);
+            if (currMetric != null) {
+                metrics.add(currMetric);
+            }
+        }
+        Map<String, Object> entityDeleted = entity.getJSONObject("entityDeleted").getInnerMap();
+        for (String key : entityDeleted.keySet()) {
+            Object value = entityDeleted.get(key);
+            String metricName = "atlas.metric." + "entity.entityDeleted." + key;
+            TimelineMetric currMetric = buildApiTimelineMetric(metricName, value, MetricType.GAUGE, currTimeMillis);
+            if (currMetric != null) {
+                metrics.add(currMetric);
+            }
+        }
+
+        return metrics;
+    }
+
+    /**
+     * Build atlas metric
+     * @param metricName
+     * @param value
+     * @return
+     */
+    private TimelineMetric buildApiTimelineMetric(String metricName, Object value, MetricType metricType, long currTimeMillis) {
+        TimelineMetric metric = null;
+        if (isNumeric(value)) {
+            if (args.isDebug()) {
+                LOG.debug("Creating timeline metric, " +
+                        " metricType = " + metricType +
+                        " time = " + currTimeMillis +
+                        " app_id = " + args.getAmbariAppId() +
+                        " hostname = " + hostname +
+                        " attrName = " + metricName +
+                        " attrValue = " + value);
+            }
+            TimelineMetric timelineMetric = new TimelineMetric();
+            timelineMetric.setMetricName(metricName);
+            timelineMetric.setHostName("hostname");
+            timelineMetric.setAppId("args.getAmbariAppId()");
+            timelineMetric.setStartTime(currTimeMillis);
+            timelineMetric.setTimestamp(currTimeMillis);
+            timelineMetric.setType(metricType.name());
+            timelineMetric.getMetricValues().put(currTimeMillis, Double.valueOf(String.valueOf(value)));
+            return timelineMetric;
+        }
+        return metric;
     }
 
     /**
@@ -121,14 +267,14 @@ public class JmxHandler {
             // remove the blank in attribute name
             String attrName = attrNameSb.toString().replace(" ", "");
             // only create timelineMetric for accepted attribute
-//            if (TimelineMetricsFilter.acceptAttr(attrName)) {
+            if (TimelineMetricsFilter.acceptAttr(attrName)) {
                 Double value = converter.apply(result.getValue());
                 metric = createTimelineMetric(currTimeMillis, MetricType.GAUGE, attrName, value);
-//            } else {
-//                if (args.isDebug()) {
-//                    LOG.debug("attribute: " + attrName + " is not in white list file");
-//                }
-//            }
+            } else {
+                if (args.isDebug()) {
+                    LOG.debug("attribute: " + attrName + " is not in white list file");
+                }
+            }
         }
         return metric;
     }

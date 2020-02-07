@@ -46,13 +46,13 @@ public class InfoArgs {
      */
     private boolean isCoordinator;
     /**
-     * presto timeout
+     * atlas timeout
      */
-    private int prestoTimeout;
+    private int atlasTimeout;
     /**
-     * presto presto api port
+     * atlas api port
      */
-    private int prestoApiPort;
+    private int atlasApiPort;
 
     public String getAmbariAppId() {
         return ambariAppId;
@@ -150,20 +150,20 @@ public class InfoArgs {
         isCoordinator = coordinator;
     }
 
-    public int getPrestoTimeout() {
-        return prestoTimeout;
+    public int getAtlasTimeout() {
+        return atlasTimeout;
     }
 
-    public void setPrestoTimeout(int prestoTimeout) {
-        this.prestoTimeout = prestoTimeout;
+    public void setAtlasTimeout(int atlasTimeout) {
+        this.atlasTimeout = atlasTimeout;
     }
 
-    public int getPrestoApiPort() {
-        return prestoApiPort;
+    public int getAtlasApiPort() {
+        return atlasApiPort;
     }
 
-    public void setPrestoApiPort(int prestoApiPort) {
-        this.prestoApiPort = prestoApiPort;
+    public void setAtlasApiPort(int atlasApiPort) {
+        this.atlasApiPort = atlasApiPort;
     }
 
 }
