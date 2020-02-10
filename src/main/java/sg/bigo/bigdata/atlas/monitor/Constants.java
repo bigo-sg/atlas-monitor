@@ -41,15 +41,13 @@ public class Constants {
     public final static String WHITE_LIST_PATTERN_PREFIX = "._p_";
 
     /**
-     *
+     * local host
      */
     public final static String LOCAL_HOST = "0.0.0.0";
 
     /**
      * atlas Api
      */
-    public final static String ATLAS_API_PORT = "atlasApiPort";
-    public final static String ATLAS_TIMEOUT = "atlasTimeout";
     public final static HashSet ATLAS_GENERAL_METRICS = new HashSet(Arrays.asList("entityCount", "tagCount", "typeUnusedCount", "typeCount"));
 
 }

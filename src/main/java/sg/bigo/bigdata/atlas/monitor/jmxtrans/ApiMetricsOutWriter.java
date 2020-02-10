@@ -38,9 +38,7 @@ public class ApiMetricsOutWriter extends BaseOutputWriter {
                                @JsonProperty(AMBARI_COLLECTOR_PORT) int collectorPort,
                                @JsonProperty(JMX_WHITELIST_ATTRS_FILE) String jmxWhitelistAttrsFile,
                                @JsonProperty(EMIT_METRICS_SWITCH) boolean emitMetricsSwitch,
-                               @JsonProperty(JMX_TYPE_NAMES_LIST) ImmutableList<String> typeNamesList,
-                               @JsonProperty(ATLAS_TIMEOUT) int atlasTimeout,
-                               @JsonProperty(ATLAS_API_PORT) int atlasApiPort
+                               @JsonProperty(JMX_TYPE_NAMES_LIST) ImmutableList<String> typeNamesList
                             ) {
         super(typeNames, booleanAsNumber, debugEnabled, settings);
         args = new InfoArgs();
@@ -54,8 +52,6 @@ public class ApiMetricsOutWriter extends BaseOutputWriter {
         args.setDebug(debugEnabled);
         args.setJmxWhitelistAttrsFile(jmxWhitelistAttrsFile);
         args.setEmitMetrics(emitMetricsSwitch);
-        args.setAtlasApiPort(atlasApiPort);
-        args.setAtlasTimeout(atlasTimeout);
         if (typeNamesList == null || typeNamesList.isEmpty()) {
             typeNamesList = ImmutableList.of("type", "name");
         }

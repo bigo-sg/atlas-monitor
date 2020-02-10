@@ -72,14 +72,8 @@ public class JmxHandler {
         ArrayList<TimelineMetric> timelineMetrics = new ArrayList<>();
 
         // API metrics
-        if (args.isCoordinator()) {
-            List<TimelineMetric> apiMetrics = buildApiTimelineMetrics();
-            timelineMetrics.addAll(apiMetrics);
-            if (apiMetrics.size() == 0) {
-                LOG.warn("api metric size is 0");
-            }
-        }
-
+        List<TimelineMetric> apiMetrics = buildApiTimelineMetrics();
+        timelineMetrics.addAll(apiMetrics);
         metrics.setMetrics(timelineMetrics);
         if (metrics.getMetrics().size() == 0) {
             LOG.warn("all metric size is 0, return");
@@ -211,8 +205,8 @@ public class JmxHandler {
             }
             TimelineMetric timelineMetric = new TimelineMetric();
             timelineMetric.setMetricName(metricName);
-            timelineMetric.setHostName("hostname");
-            timelineMetric.setAppId("args.getAmbariAppId()");
+            timelineMetric.setHostName(hostname);
+            timelineMetric.setAppId(args.getAmbariAppId());
             timelineMetric.setStartTime(currTimeMillis);
             timelineMetric.setTimestamp(currTimeMillis);
             timelineMetric.setType(metricType.name());

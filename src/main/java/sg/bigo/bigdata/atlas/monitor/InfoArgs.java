@@ -45,14 +45,6 @@ public class InfoArgs {
      * is coordinator
      */
     private boolean isCoordinator;
-    /**
-     * atlas timeout
-     */
-    private int atlasTimeout;
-    /**
-     * atlas api port
-     */
-    private int atlasApiPort;
 
     public String getAmbariAppId() {
         return ambariAppId;
@@ -148,22 +140,6 @@ public class InfoArgs {
 
     public void setCoordinator(boolean coordinator) {
         isCoordinator = coordinator;
-    }
-
-    public int getAtlasTimeout() {
-        return atlasTimeout;
-    }
-
-    public void setAtlasTimeout(int atlasTimeout) {
-        this.atlasTimeout = atlasTimeout;
-    }
-
-    public int getAtlasApiPort() {
-        return atlasApiPort;
-    }
-
-    public void setAtlasApiPort(int atlasApiPort) {
-        this.atlasApiPort = atlasApiPort;
     }
 
 }
