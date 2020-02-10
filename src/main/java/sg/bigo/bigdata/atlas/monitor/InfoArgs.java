@@ -45,14 +45,6 @@ public class InfoArgs {
      * is coordinator
      */
     private boolean isCoordinator;
-    /**
-     * presto timeout
-     */
-    private int prestoTimeout;
-    /**
-     * presto presto api port
-     */
-    private int prestoApiPort;
 
     public String getAmbariAppId() {
         return ambariAppId;
@@ -148,22 +140,6 @@ public class InfoArgs {
 
     public void setCoordinator(boolean coordinator) {
         isCoordinator = coordinator;
-    }
-
-    public int getPrestoTimeout() {
-        return prestoTimeout;
-    }
-
-    public void setPrestoTimeout(int prestoTimeout) {
-        this.prestoTimeout = prestoTimeout;
-    }
-
-    public int getPrestoApiPort() {
-        return prestoApiPort;
-    }
-
-    public void setPrestoApiPort(int prestoApiPort) {
-        this.prestoApiPort = prestoApiPort;
     }
 
 }
