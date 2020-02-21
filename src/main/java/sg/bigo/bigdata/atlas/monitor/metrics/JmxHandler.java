@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.jmxtrans.model.Result;
 import com.googlecode.jmxtrans.util.ObjectToDouble;
-import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata.MetricType;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
@@ -138,17 +137,25 @@ public class JmxHandler {
 
         Map<String, Object> topics = general.getJSONObject("stats").getJSONObject("Notification:topicDetails")
                 .getInnerMap();
+        long failedMessageCount = 0;
+        long processedMessageCount = 0;
         for (String topic : topics.keySet()) {
-            Map<String, Object> topicDetails = JSONObject.parseObject(topics.get(topic).toString()).getInnerMap();
-            for (String key : topicDetails.keySet()) {
-                Object value = topicDetails.get(key);
-                String metricName = "atlas.metric." + "general." + StringUtils.replace(topic, "-", "_")
-                        + "." + key;
-                TimelineMetric currMetric = buildApiTimelineMetric(metricName, value, MetricType.GAUGE, currTimeMillis);
-                if (currMetric != null) {
-                    metrics.add(currMetric);
-                }
+            if (topic.startsWith("ATLAS_HOOK")) {
+                Map<String, Object> topicDetails = JSONObject.parseObject(topics.get(topic).toString()).getInnerMap();
+                failedMessageCount += Long.valueOf(topicDetails.get("failedMessageCount").toString());
+                processedMessageCount += Long.valueOf(topicDetails.get("processedMessageCount").toString());
             }
+        }
+        TimelineMetric failedMessageCountMetric = buildApiTimelineMetric("atlas.metric.general.ATLAS_HOOK.failedMessageCount",
+                failedMessageCount, MetricType.GAUGE, currTimeMillis);
+        if (failedMessageCountMetric != null) {
+            metrics.add(failedMessageCountMetric);
+        }
+
+        TimelineMetric processedMessageCountMetric = buildApiTimelineMetric("atlas.metric.general.ATLAS_HOOK.processedMessageCount",
+                processedMessageCount, MetricType.GAUGE, currTimeMillis);
+        if (processedMessageCountMetric != null) {
+            metrics.add(processedMessageCountMetric);
         }
 
         // metric for tag
